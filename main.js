@@ -1,5 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
-const { joinGame } = require('./game.service');
+const { joinGame } = require('./play.service');
 
 const prisma = new PrismaClient();
 
