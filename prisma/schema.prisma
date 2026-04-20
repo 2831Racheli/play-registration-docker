@@ -1,13 +1,13 @@
 generator client {
   provider = "prisma-client-js"
-}
+} 
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// עדכון ה-Enum ל-PlayStatus
+// 1. הגדרת Enums (ערכים קבועים) כפי שנדרש באפיון
 enum PlayStatus {
   Waiting
   Live
@@ -19,30 +19,32 @@ enum ParticipantRole {
   Player
 }
 
+// 2. מודל משתמש
 model User {
   id           Int               @id @default(autoincrement())
-  username     String            @unique
-  participants PlayParticipant[] // קשר מעודכן
+  username     String            @unique 
+  participants PlayParticipant[] // קשר למפגשים שהמשתמש משתתף בהם
 }
 
-// המודל הראשי שונה ל-Play
+// 3. מודל הפעילות
 model Play {
   id           Int               @id @default(autoincrement())
-  status       PlayStatus        @default(Waiting)
-  participants PlayParticipant[]
+  status       PlayStatus        @default(Waiting) // סטטוס ברירת מחדל
+  participants PlayParticipant[] // קשר למשתתפים
 }
 
-// טבלת הקשר שונתה ל-PlayParticipant
+// 4. טבלת קשר (Many-to-Many)
 model PlayParticipant {
-  id     Int               @id @default(autoincrement())
-  role   ParticipantRole   @default(Player)
-  score  Int               @default(0)
+  id     Int               @id @default(autoincrement()) 
+  role   ParticipantRole   @default(Player) // תפקיד ברירת מחדל
+  score  Int               @default(0)      // ניקוד
   
+  // קשרים למודלים האחרים
   userId Int
   user   User @relation(fields: [userId], references: [id])
   
   playId Int
   play   Play @relation(fields: [playId], references: [id])
 
-  @@unique([userId, playId])
+  @@unique([userId, playId]) // מונע ממשתמש להירשם פעמיים לאותו מופע
 }
