@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. הגדרת Enums (ערכים קבועים) כפי שנדרש באפיון [cite: 16]
+enum GameStatus {
+  Waiting
+  Live
+  Finished
+}
+
+enum ParticipantRole {
+  Admin
+  Player
+}
+
+// 2. מודל משתמש [cite: 10]
+model User {
+  id           Int               @id @default(autoincrement())
+  username     String            @unique
+  participants GameParticipant[] // קשר למשחקים שהמשתמש משתתף בהם [cite: 15]
+}
+
+// 3. מודל משחק [cite: 11]
+model Game {
+  id           Int               @id @default(autoincrement())
+  status       GameStatus        @default(Waiting) // סטטוס ברירת מחדל [cite: 26]
+  participants GameParticipant[] // קשר למשתתפים במשחק [cite: 15]
+}
+
+// 4. טבלת קשר (Many-to-Many) [cite: 12]
+model GameParticipant {
+  id     Int             @id @default(autoincrement())
+  role   ParticipantRole @default(Player) // תפקיד ברירת מחדל [cite: 22]
+  score  Int             @default(0)      // ניקוד [cite: 12]
+  
+  // קשרים למודלים האחרים
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+  
+  gameId Int
+  game   Game @relation(fields: [gameId], references: [id])
+
+  @@unique([userId, gameId]) // מונע ממשתמש להירשם פעמיים לאותו משחק [cite: 21]
+}
