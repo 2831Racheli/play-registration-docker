@@ -2,43 +2,43 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
- * פונקציה לרישום משתמש למשחק
+ * פונקציה לרישום משתמש למפגש (Play)
  * @param {number} userId - מזהה המשתמש
- * @param {number} gameId - מזהה המשחק
+ * @param {number} playId - מזהה הפעילות
  */
-async function joinGame(userId, gameId) {
-    // 1. בדיקה שהמשחק קיים ושהסטטוס שלו הוא Waiting
-    const game = await prisma.game.findUnique({
-        where: { id: gameId }
+async function joinPlay(userId, playId) {
+    // 1. בדיקה שהפעילות קיימת ושהסטטוס שלה הוא Waiting
+    const play = await prisma.play.findUnique({
+        where: { id: playId }
     });
 
-    if (!game) {
-        throw new Error("Game not found"); // 
+    if (!play) {
+        throw new Error("Play session not found"); 
     }
 
-    if (game.status !== 'Waiting') {
-        throw new Error("Cannot join: Game has already started or finished"); // [cite: 20, 23]
+    if (play.status !== 'Waiting') {
+        throw new Error("Cannot join: Session has already started or finished"); //
     }
 
-    // 2. בדיקה שהמשתמש עדיין לא רשום למשחק זה
-    const existingParticipant = await prisma.gameParticipant.findUnique({
+    // 2. בדיקה שהמשתמש עדיין לא רשום
+    const existingParticipant = await prisma.playParticipant.findUnique({
         where: {
-            userId_gameId: { userId, gameId }
+            userId_playId: { userId, playId }
         }
     });
 
     if (existingParticipant) {
-        throw new Error("User is already registered for this game"); // [cite: 21, 23]
+        throw new Error("User is already registered for this session"); //
     }
 
-    // 3. רישום המשתמש לטבלת GameParticipant בתפקיד Player
-    return await prisma.gameParticipant.create({
+    // 3. רישום המשתמש לטבלת PlayParticipant בתפקיד Player
+    return await prisma.playParticipant.create({
         data: {
             userId: userId,
-            gameId: gameId,
-            role: 'Player' // [cite: 22]
+            playId: playId,
+            role: 'Player' //
         }
     });
 }
 
-module.exports = { joinGame };
+module.exports = { joinPlay };
